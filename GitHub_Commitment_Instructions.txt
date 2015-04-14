@@ -1,0 +1,4 @@
+#General comment - GitHub doesn't accept the empty folders it should contain at least one empty file.
+1. to add the folder or file to the repository - git add test
+2. to commit the changes to the head server - git commit -m "blabla"
+3. to apply the changes to the master branch - git push origin master
