@@ -2,3 +2,4 @@
 1. to add the folder or file to the repository - git add test
 2. to commit the changes to the head server - git commit -m "blabla"
 3. to apply the changes to the master branch - git push origin master
+4. to delete the file or folder from the GitHub repository - git rm -rf filename/foldername (the rest procedures are the same)
