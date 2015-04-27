@@ -11,20 +11,25 @@ from sklearn.cluster import MiniBatchKMeans, KMeans
 # from sklearn.metrics.pairwise import pairwise_distances_argmin
 from sklearn.datasets.samples_generator import make_blobs
 
-#################################################################
 
-#Read Data
-f_in = open('Data/pingdata_after_pca.csv')
-data = []
-ilauf = 0
-for line in f_in.readlines():
-	if not ilauf==0:
-		l = line.split(',')
-		data.append(l)
-	ilauf+=1
-f_in.close()
-data = np.array(data).astype(float)
-# data = data[:,:70]
+def array2d_to_string(arr):
+	s = ''
+	for l in arr:
+		for c in l[:-1]:
+			s = s+str(c)+','
+		s = s+str(l[-1])+'\n'
+	return s
+
+def read_data(f_in):
+	data = []
+	ilauf = 0
+	for line in f_in.readlines():
+		if not ilauf==0:
+			l = line.split(',')
+			data.append(l)
+		ilauf+=1
+	data = np.array(data).astype(float)
+	return data
 
 #Compute Clustering with kmeans
 def kmeans_on_data(dataset, n_cl, save_bool, n_jobs):
@@ -73,27 +78,46 @@ def kmeans_on_data(dataset, n_cl, save_bool, n_jobs):
 		ax.legend(loc = 'upper left', bbox_to_anchor = (0.85,1.00), fontsize = 12, markerscale = 0.7, numpoints = 1)
 		plt.savefig('Plots/K-Means_k'+str(n_cl)+'.pdf', format = 'pdf')
 
-		ax.set_xlim([-5,15])
-		ax.set_ylim([-10,4])
+		ax.set_xlim([-0.05,1])
+		ax.set_ylim([-0.05,1])
 		plt.savefig('Plots/K-Means_small_k'+str(n_cl)+'.pdf', format = 'pdf')
 		plt.close('all')
 
 	return k_means
 
-f_out = open('Data/val.csv','w')
+#################################################################
 
+#Read Data
+f_in = open('/home/winz3r/Documents/Data/z_normalized_data.csv')
+data = read_data(f_in)
+f_in.close()
+
+# data = data[:,:70]
+
+f_out = open('Data/val.csv','w')
+K_write = []
 for K in range(2,11):
 	k_means = kmeans_on_data(data, K, True, 4)
-	meanInertia = 0
-	meanscore = 0 
+	Inertia = []
 	for i in range(10):
-		X_test = []
-		for i in range(len(data[:,0]/10)):
-			X_test.append(random.choice(data))
-		X_test = np.array(X_test)
+		new_columns = np.arange(0,len(data[0,:]), 1)
+		random.shuffle(new_columns)
+		X_test = data[:,new_columns]
+	# for i in range(10):
+	# 	X_test = []
+	# 	for i in range(len(data[:,0]/10)):
+	# 		X_test.append(random.choice(data))
+		# X_test = np.array(X_test)
 		val_means = kmeans_on_data(X_test,K,False, 4)
-		meanscore += k_means.score(X_test)/10.
-		meanInertia += val_means.inertia_/10.
-	f_out.write(str(K)+','+str(meanInertia)+','+str(meanscore)+'\n')
+		Inertia.append(val_means.inertia_)
+	meanInertia = np.array(Inertia).mean()
+	standard_deviation = np.array(Inertia).std()
+	K_write.append([K, k_means.inertia_, meanInertia, standard_deviation])
+	for iner in Inertia:
+		K_write[-1].append(iner)
+
+print K_write
+f_out.write(array2d_to_string(K_write))
 
 f_out.close()
+
