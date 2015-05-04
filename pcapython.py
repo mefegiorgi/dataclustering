@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 
-f_in = open('Data/z_normalized_data.csv')
+f_in = open('/home/winz3r/Documents/Data/z_normalized_data_cut.csv')
 data = []
 ilauf = 0
 for line in f_in.readlines():
@@ -22,7 +22,7 @@ pca_score = pca.explained_variance_ratio_
 V = pca.components_
 V = np.matrix(V)
 
-f_out = open("Data/pca_components.csv",'w')
+f_out = open("Data/PCA/pca_components.csv",'w')
 for n in pca.components_.astype(str):
 	newline = str(n[0])
 	for c in n[1:]:

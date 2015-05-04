@@ -21,19 +21,16 @@ def read_data(f_in):
 
 f_in = open('Data/val.csv')
 
-# K= []
-# I = []
+s_title = 'K-Means'
 
 data = read_data(f_in)
-
-# K = np.array(K).astype(float)
-# I = np.array(I).astype(float)
+f_in.close()
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-ax.set_title('elbow plot')
-ax.set_xlabel('number of clusters')
-ax.set_ylabel('$(SSE-<SSE\'>)/\sigma$')
+ax.set_title('Validation Plot: '+ s_title)
+ax.set_xlabel('Number of Clusters')
+ax.set_ylabel('$(SSE-<SSE\'>)/\sigma $[s]')
 ax.set_xticks(data[:,0])
 Klabel = []
 for k in data[:,0]:
@@ -49,8 +46,8 @@ plt.close('all')
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-ax.set_title('elbow plot')
-ax.set_xlabel('number of clusters')
+ax.set_title('Validation Plot: '+ s_title)
+ax.set_xlabel('Number of Clusters')
 ax.set_ylabel('SSE [s$^2$]')
 ax.set_xticks(data[:,0])
 Klabel = []
@@ -66,8 +63,8 @@ plt.show()
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
-ax.set_title('elbow plot')
-ax.set_xlabel('number of clusters')
+ax.set_title('Validation Plot: '+ s_title)
+ax.set_xlabel('Number of Clusters')
 ax.set_ylabel('SSE [s$^2$]')
 ax.set_xticks(data[:,0])
 Klabel = []
@@ -77,7 +74,8 @@ ax.set_xticklabels(Klabel)
 yerr= data[:,3]
 # for i in range(4,len(data[0,:])):
 	# ax.plot(data[:,0],data[:,i],'o', linestyle='-', color='red')
-ax.plot(data[:,0].astype(int),data[:,1],'o', linestyle='-', color='green')
-ax.errorbar(data[:,0].astype(int),data[:,2], fmt='o', yerr=data[:,3], linestyle='-', color='red')
+ax.plot(data[:,0].astype(int),data[:,1],'o', linestyle='-', color='green', label='Standard Data')
+ax.errorbar(data[:,0].astype(int),data[:,2], fmt='o', yerr=data[:,3], linestyle='-', color='red', label='Mean of shuffled Data')
+ax.legend(loc = 1)
 fig.tight_layout()
 plt.show()
