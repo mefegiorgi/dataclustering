@@ -26,7 +26,7 @@ def read_data(f_in):
 
 # hierarchical
 
-arr_TYP = ('hierarchichal', 'kmeans')
+arr_TYP = ('hierarchichal', 'kmeans','GMM')
 arr_STRU = ('CUT', 'PCA')
 
 hier_pca_sil = []
@@ -38,6 +38,11 @@ kmeans_pca_sil = []
 kmeans_pca_sse = []
 kmeans_cut_sil = []
 kmeans_cut_sse = []
+
+gmm_pca_sil = []
+gmm_pca_sse = []
+gmm_cut_sil = []
+gmm_cut_sse = []
 
 
 for TYP in arr_TYP:
@@ -86,6 +91,12 @@ for TYP in arr_TYP:
 		if TYP=='kmeans' and STRU=='PCA':
 			kmeans_pca_sil = sil_data
 			kmeans_pca_sse = sse_data
+		if TYP=='GMM' and STRU=='CUT':
+			gmm_cut_sil = sil_data
+			gmm_cut_sse = sse_data
+		if TYP=='GMM' and STRU=='PCA':
+			gmm_pca_sil = sil_data
+			gmm_pca_sse = sse_data
 
 # fig = plt.figure()
 # ax = fig.add_subplot(1,1,1)
@@ -98,35 +109,38 @@ for TYP in arr_TYP:
 # fig.tight_layout()
 # plt.show()
 
-# fig = plt.figure()
-# ax = fig.add_subplot(1,1,1)
-# ax.set_xlabel('Number of Clusters')
-# ax.set_title('Silhouette Coefficient for Clustering on normalised data')
-# ax.set_ylabel('Silhouette Coefficient')
-# p1 = ax.errorbar(hier_cut_sil[:,0], hier_cut_sil[:,1:].mean(axis=1), yerr=hier_cut_sil[:,1:].std(axis=1), color= 'red')
-# p2 = ax.errorbar(kmeans_cut_sil[:,0], kmeans_cut_sil[:,1:].mean(axis=1), yerr=kmeans_cut_sil[:,1:].std(axis=1), color = 'green')
-# ax.legend((p1,p2),('hierarchichal', 'kmeans'))
-# fig.tight_layout()
-# plt.show()
-
-# fig = plt.figure()
-# ax = fig.add_subplot(1,1,1)
-# ax.set_xlabel('Number of Clusters')
-# ax.set_title('Silhouette Coefficient for Clustering on PCA-transformed data')
-# ax.set_ylabel('Silhouette Coefficient')
-# p1 = ax.errorbar(hier_pca_sil[:,0], hier_pca_sil[:,1:].mean(axis=1), yerr=hier_pca_sil[:,1:].std(axis=1), color= 'red')
-# p2 = ax.errorbar(kmeans_pca_sil[:,0], kmeans_pca_sil[:,1:].mean(axis=1), yerr=kmeans_pca_sil[:,1:].std(axis=1), color = 'green')
-# ax.legend((p1,p2),('hierarchichal', 'kmeans'))
-# fig.tight_layout()
-# plt.show()
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1)
+ax.set_xlabel('Number of Clusters')
+ax.set_title('Silhouette Coefficient for Clustering on normalised data')
+ax.set_ylabel('Silhouette Coefficient')
+p1 = ax.errorbar(hier_cut_sil[:,0], hier_cut_sil[:,1:].mean(axis=1), yerr=hier_cut_sil[:,1:].std(axis=1), color= 'red')
+p2 = ax.errorbar(kmeans_cut_sil[:,0], kmeans_cut_sil[:,1:].mean(axis=1), yerr=kmeans_cut_sil[:,1:].std(axis=1), color = 'green')
+p3 = ax.errorbar(gmm_cut_sil[:,0], gmm_cut_sil[:,1:].mean(axis=1), yerr=gmm_cut_sil[:,1:].std(axis=1), color = 'blue')
+ax.legend((p1,p2, p3),('hierarchichal', 'kmeans', 'gmm'))
+fig.tight_layout()
+plt.show()
 
 fig = plt.figure()
 ax = fig.add_subplot(1,1,1)
 ax.set_xlabel('Number of Clusters')
-ax.set_title('SSE for Clustering on PCA-transformed data')
-ax.set_ylabel('SSE [s$^2$]')
-p1 = ax.errorbar(hier_pca_sse[:,0], hier_pca_sse[:,1:].mean(axis=1), yerr=hier_pca_sse[:,1:].std(axis=1), color= 'red')
-p2 = ax.errorbar(kmeans_pca_sse[:,0], kmeans_pca_sse[:,1:].mean(axis=1), yerr=kmeans_pca_sse[:,1:].std(axis=1), color = 'green')
-ax.legend((p1,p2),('hierarchichal', 'kmeans'))
+ax.set_title('Silhouette Coefficient for Clustering on PCA-transformed data')
+ax.set_ylabel('Silhouette Coefficient')
+p1 = ax.errorbar(hier_pca_sil[:,0], hier_pca_sil[:,1:].mean(axis=1), yerr=hier_pca_sil[:,1:].std(axis=1), color= 'red')
+p2 = ax.errorbar(kmeans_pca_sil[:,0], kmeans_pca_sil[:,1:].mean(axis=1), yerr=kmeans_pca_sil[:,1:].std(axis=1), color = 'green')
+p3 = ax.errorbar(gmm_pca_sil[:,0], gmm_pca_sil[:,1:].mean(axis=1), yerr=gmm_pca_sil[:,1:].std(axis=1), color = 'blue')
+ax.legend((p1,p2, p3),('hierarchichal', 'kmeans', 'gmm'))
 fig.tight_layout()
 plt.show()
+
+# fig = plt.figure()
+# ax = fig.add_subplot(1,1,1)
+# ax.set_xlabel('Number of Clusters')
+# ax.set_title('SSE for Clustering on PCA-transformed data')
+# ax.set_ylabel('SSE [s$^2$]')
+# p1 = ax.errorbar(hier_pca_sse[:,0], hier_pca_sse[:,1:].mean(axis=1), yerr=hier_pca_sse[:,1:].std(axis=1), color= 'red')
+# p2 = ax.errorbar(kmeans_pca_sse[:,0], kmeans_pca_sse[:,1:].mean(axis=1), yerr=kmeans_pca_sse[:,1:].std(axis=1), color = 'green')
+# p3 = ax.errorbar(gmm_pca_sse[:,0], gmm_pca_sse[:,1:].mean(axis=1), yerr=gmm_pca_sse[:,1:].std(axis=1), color = 'blue')
+# ax.legend((p1,p2),('hierarchichal', 'kmeans'))
+# fig.tight_layout()
+# plt.show()
