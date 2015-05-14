@@ -86,7 +86,7 @@ class StatusIdentification:
         pca.fit(self.processed_data)
         pca_score = pca.explained_variance_ratio_
         self.pca_components = pca.components_
-        self.pca_data = pca.transform(self.processed_data)
+        self.pca_data = np.array(pca.transform(self.processed_data))
 
 
     def __process_data(self):
@@ -102,15 +102,32 @@ class StatusIdentification:
                 i+=1
             if line_is_okay:
                 for j in range(2,len(columns)):
-                    if float(columns[j]) > cut_value:
-                        columns[j] = str(cut_value)
+                    if float(columns[j]) > self.cut_value:
+                        columns[j] = str(self.cut_value)
                 self.raw_data.append(columns[2:])
         f_in.close()
         self.raw_data = np.array(self.raw_data).astype(float)
         self.__normalise()
+        self.__PrincipleComponentAnalysis()
 
     def determine_n_cl(self):
-        hist = np.histogramdd(pca_data, int(cut_value))
+        r_projected_data = np.sqrt(np.sum(self.pca_data**2, axis = 1))
+        hist = np.histogram(r_projected_data, int(self.cut_value))
+        bins = []
+        for i in range(int(self.cut_value)):
+            bins.append([])
+        max = r_projected_data.max()
+        r_bins = float(max/int(self.cut_value)) * np.arange(0,int(self.cut_value))
+        for i in range(self.cut_value):
+            for j in range(len(r_projected_data)):
+                if (r_projected_data[j] >= r_bins[i]) and (r_projected_data[j] < r_bins[i]+float(max/int(self.cut_value))):
+                    bins[i].append(self.pca_data[j,:])
+        bins = np.array(bins)
+        for b in bins:
+            for i in range(int(float(len(b))/len(self.pca_data)*self.sample_size)):
+                self.sample.append(random.choice(b))
+        print self.sample, len(sample)
+
 
 
 

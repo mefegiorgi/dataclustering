@@ -1,4 +1,5 @@
 import CSSIT
 
 g = CSSIT.StatusIdentification('Data/pingdata.csv')
-g.process_data()
+
+g.determine_n_cl()
