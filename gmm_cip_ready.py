@@ -1,4 +1,4 @@
-#hierarchical
+# hierarchical
 
 import time
 
@@ -8,11 +8,11 @@ import matplotlib.cm as cm
 import random
 from sklearn import cross_validation
 
-# from sklearn.cluster import KMeans
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.neighbors import kneighbors_graph
+from sklearn.mixture import GMM
+# from sklearn.cluster import AgglomerativeClustering
+# from sklearn.neighbors import kneighbors_graph
 # from sklearn.metrics.pairwise import pairwise_distances_argmin
-from sklearn.datasets.samples_generator import make_blobs
+# from sklearn.datasets.samples_generator import make_blobs
 from sklearn.metrics import silhouette_samples
 
 
@@ -36,7 +36,7 @@ def read_data(f_in):
 	return data
 
 dat_name = ('Data/pingdata_after_pca.csv', 'Data/z_normalized_data_cut.csv', 'Data/pingdata_pca_polar.csv')
-dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/'
+dir_name = '/home/philip.marszal/Bachelor/Data/Results/GMM/'
 
 # f_in = open('/home/winz3r/Documents/Data/z_normalized_data.csv')
 for d_name in dat_name:
@@ -44,19 +44,21 @@ for d_name in dat_name:
 	data = read_data(f_in)
 	f_in.close()
 	if d_name == 'Data/pingdata_after_pca.csv':
-		dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/PCA/'
+		dir_name = '/home/philip.marszal/Bachelor/Data/Results/GMM/PCA/'
 	if d_name == 'Data/z_normalized_data_cut.csv':
-		dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/CUT/'
+		dir_name = '/home/philip.marszal/Bachelor/Data/Results/GMM/CUT/'
 	if d_name == 'Data/pingdata_pca_polar.csv':
-		dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/POL/'
+		dir_name = '/home/philip.marszal/Bachelor/Data/Results/GMM/POL/'
+
 	for i in range(10):
 		X = []
 		for j in range(15000):
 			X.append(random.choice(data))
-
-		sil_name = dir_name+'kmeans_cluster_silhouette'+str(i)+'.csv'
-		sse_name = dir_name+'kmeans_cluster_SSE'+str(i)+'.csv'
-		time_name = dir_name+'kmeans_cluster_time'+str(i)+'.csv'
+		X = np.array(X)
+		# X = data
+		sil_name = dir_name+'GMM_cluster_silhouette'+str(i)+'.csv'
+		sse_name = dir_name+'GMM_cluster_SSE'+str(i)+'.csv'
+		time_name = dir_name+'GMM_cluster_time'+str(i)+'.csv'
 
 		w_SSE = []
 		w_sil = []
@@ -66,13 +68,12 @@ for d_name in dat_name:
 			sil = []
 			tim = []
 
-			model = KMeans(init='random', n_clusters=n_cl, n_init=10, n_jobs=1)
+			model =GMM(n_components = n_cl)
 			t0 = time.time()
 			model.fit(X)
-			tim_spec = time.time()-t0
 
-			hier_labels = model.labels_
-			label_name = dir_name+'kmeans_cluster_labels_K'+str(n_cl)+'_'+str(i)+'.csv'
+			hier_labels = model.predict(X)
+			label_name = dir_name+'GMM_cluster_labels_K'+str(n_cl)+'_'+str(i)+'.csv'
 			f_out = open(label_name,'w')
 			for w in hier_labels:
 				f_out.write(str(w)+'\n')
@@ -80,7 +81,7 @@ for d_name in dat_name:
 
 			##Silhouette Calculation
 			sil_spec = (silhouette_samples(X,hier_labels)).mean(axis=0)
-
+			tim_spec = time.time()-t0
 			##SSE Calculation
 			SSE_spec=0
 			for k in range(n_cl):

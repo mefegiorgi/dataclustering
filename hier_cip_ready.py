@@ -36,27 +36,28 @@ def read_data(f_in):
 	return data
 
 dat_name = ('Data/pingdata_after_pca.csv', 'Data/z_normalized_data_cut.csv', 'Data/pingdata_pca_polar.csv')
-dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/'
+dir_name ='/home/philip.marszal/Bachelor/Data/Results/hierarchical/'
 
 # f_in = open('/home/winz3r/Documents/Data/z_normalized_data.csv')
 for d_name in dat_name:
 	f_in = open(d_name)
 	data = read_data(f_in)
 	f_in.close()
+
 	if d_name == 'Data/pingdata_after_pca.csv':
-		dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/PCA/'
+		dir_name = '/home/philip.marszal/Bachelor/Data/Results/hierarchical/PCA/'
 	if d_name == 'Data/z_normalized_data_cut.csv':
-		dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/CUT/'
+		dir_name = '/home/philip.marszal/Bachelor/Data/Results/hierarchical/CUT/'
 	if d_name == 'Data/pingdata_pca_polar.csv':
-		dir_name = '/home/philip.marszal/Bachelor/Data/Results/Kmeans/POL/'
+		dir_name = '/home/philip.marszal/Bachelor/Data/Results/hierarchical/POL/'
 	for i in range(10):
 		X = []
 		for j in range(15000):
 			X.append(random.choice(data))
 
-		sil_name = dir_name+'kmeans_cluster_silhouette'+str(i)+'.csv'
-		sse_name = dir_name+'kmeans_cluster_SSE'+str(i)+'.csv'
-		time_name = dir_name+'kmeans_cluster_time'+str(i)+'.csv'
+		sil_name = dir_name+'hierarchichal_cluster_silhouette'+str(i)+'.csv'
+		sse_name = dir_name+'hierarchichal_cluster_SSE'+str(i)+'.csv'
+		time_name = dir_name+'hierarchichal_cluster_time'+str(i)+'.csv'
 
 		w_SSE = []
 		w_sil = []
@@ -66,13 +67,13 @@ for d_name in dat_name:
 			sil = []
 			tim = []
 
-			model = KMeans(init='random', n_clusters=n_cl, n_init=10, n_jobs=1)
+			model = AgglomerativeClustering( linkage= 'ward', n_clusters = n_cl, memory= '/home/winz3r/Documents/Data/')
 			t0 = time.time()
 			model.fit(X)
 			tim_spec = time.time()-t0
 
 			hier_labels = model.labels_
-			label_name = dir_name+'kmeans_cluster_labels_K'+str(n_cl)+'_'+str(i)+'.csv'
+			label_name = dir_name+'hierarchical_cluster_labels_K'+str(n_cl)+'_'+str(i)+'.csv'
 			f_out = open(label_name,'w')
 			for w in hier_labels:
 				f_out.write(str(w)+'\n')
