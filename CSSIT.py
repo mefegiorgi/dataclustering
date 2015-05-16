@@ -6,7 +6,8 @@
 #
 #
 #
-#
+# Author: Philip Marszal
+# Date: 15.05.15
 #------------------------------------------------------------
 
 import numpy as np
@@ -25,10 +26,13 @@ class StatusIdentification:
     pca_components = []
     pca_data = []
     sample = []
+    K = 0
+    cluster_centers = []
     N_Points = 30
     Std_Dev = 5
     cut_value = 500
     sample_size = 5000
+    conf_interval = 0.8
 
 
 #--------------------------------------------------------------
@@ -111,8 +115,10 @@ class StatusIdentification:
         self.__PrincipleComponentAnalysis()
 
     def determine_n_cl(self):
+
+        #-----------------------------------------------------------------
+        # SAMPLING
         r_projected_data = np.sqrt(np.sum(self.pca_data**2, axis = 1))
-        hist = np.histogram(r_projected_data, int(self.cut_value))
         bins = []
         for i in range(int(self.cut_value)):
             bins.append([])
@@ -126,7 +132,20 @@ class StatusIdentification:
         for b in bins:
             for i in range(int(float(len(b))/len(self.pca_data)*self.sample_size)):
                 self.sample.append(random.choice(b))
-        print self.sample, len(sample)
+    
+
+        #------------------------------------------------------------------
+        k = len(self.pca_components)
+        sil = 0
+        print len(self.sample)
+        while sil<self.conf_interval and k >=2:
+            kmeans = KMeans(n_clusters=k)
+            kmeans.fit(self.sample)
+            # print kmeans.cluster_centers_
+            sil = (silhouette_samples(self.sample,kmeans.labels_)).mean(axis = 0)
+            k = k-1
+            print k+1, sil
+        # print k+1, sil
 
 
 
