@@ -163,7 +163,12 @@ class StatusIdentification:
             sil = (silhouette_samples(self.sample,kmeans.labels_)).mean(axis = 0)
             k = k-1
             print k+1, sil
+        self.K=k+1
         # print k+1, sil
+    def clustering(self):
+        kmeans = KMeans(n_clusters=self.K)
+        kmeans.fit(self.pca_data)
+        self.cluster_centers = kmeans.cluster_centers_
 
 
 
