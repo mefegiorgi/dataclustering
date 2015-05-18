@@ -20,7 +20,7 @@ import scipy.signal as signal
 from sklearn.decomposition import PCA
 
 class StatusIdentification:
-    path_to_data = ''
+    filename = ''
     raw_data = []
     processed_data = []
     pca_components = []
@@ -39,8 +39,14 @@ class StatusIdentification:
 # FUNCTIONS
 #--------------------------------------------------------------
 
-    def __init__(self, filename):
-        self.path_to_data = filename
+    def __init__(self, arr):
+        if type(arr) is str:
+            self.filename = arr
+        elif type(arr) is numpy.ndarray:
+            self.raw_data = arr
+        elif type(arr) is list:
+            self.raw_data = np.array(arr)
+
         self.__process_data()
 
     def __array2d_to_file(arr):
@@ -94,22 +100,28 @@ class StatusIdentification:
 
 
     def __process_data(self):
-        f_in = open(self.path_to_data)
-        for line in f_in:
-            line = (line.split('\r\n'))[0]
-            columns = line.split(',')
-            line_is_okay = True
-            i=2
-            while line_is_okay and i<len(columns):
-                if columns[i] == '-1' or columns[i] == 'none':
-                    line_is_okay=False
-                i+=1
-            if line_is_okay:
-                for j in range(2,len(columns)):
-                    if float(columns[j]) > self.cut_value:
-                        columns[j] = str(self.cut_value)
-                self.raw_data.append(columns[2:])
-        f_in.close()
+        if self.filename != '':
+            f_in = open(self.filename)
+            for line in f_in:
+                line = (line.split('\r\n'))[0]
+                columns = line.split(',')
+                line_is_okay = True
+                i=2
+                while line_is_okay and i<len(columns):
+                    if columns[i] == '-1' or columns[i] == 'none':
+                        line_is_okay=False
+                    i+=1
+                if line_is_okay:
+                    for j in range(2,len(columns)):
+                        if float(columns[j]) > self.cut_value:
+                            columns[j] = str(self.cut_value)
+                    self.raw_data.append(columns[2:])
+            f_in.close()
+        else:
+            for i in range(len(self.raw_data[:,0])):
+                for j in range(len(self.raw_data[0,:])):
+                    if self.raw_data[i,j] > self.cut_value:
+                        self.raw_data[i,j] = self.cut_value
         self.raw_data = np.array(self.raw_data).astype(float)
         self.__normalise()
         self.__PrincipleComponentAnalysis()
@@ -118,22 +130,28 @@ class StatusIdentification:
 
         #-----------------------------------------------------------------
         # SAMPLING
-        r_projected_data = np.sqrt(np.sum(self.pca_data**2, axis = 1))
-        bins = []
-        for i in range(int(self.cut_value)):
-            bins.append([])
-        max = r_projected_data.max()
-        r_bins = float(max/int(self.cut_value)) * np.arange(0,int(self.cut_value))
-        for i in range(self.cut_value):
-            for j in range(len(r_projected_data)):
-                if (r_projected_data[j] >= r_bins[i]) and (r_projected_data[j] < r_bins[i]+float(max/int(self.cut_value))):
-                    bins[i].append(self.pca_data[j,:])
-        bins = np.array(bins)
-        for b in bins:
-            for i in range(int(float(len(b))/len(self.pca_data)*self.sample_size)):
-                self.sample.append(random.choice(b))
-    
+        # r_projected_data = np.sqrt(np.sum(self.pca_data**2, axis = 1))
+        # bins = []
+        # for i in range(int(self.cut_value)):
+        #     bins.append([])
+        # max = r_projected_data.max()
+        # r_bins = float(max/int(self.cut_value)) * np.arange(0,int(self.cut_value))
+        # for i in range(self.cut_value):
+        #     for j in range(len(r_projected_data)):
+        #         if (r_projected_data[j] >= r_bins[i]) and (r_projected_data[j] < r_bins[i]+float(max/int(self.cut_value))):
+        #             bins[i].append(self.pca_data[j,:])
+        # bins = np.array(bins)
+        # for b in bins:
+        #     for i in range(int(float(len(b))/len(self.pca_data)*self.sample_size)):
+        #         self.sample.append(random.choice(b))
+        index_list = []
+        index_list_pre= range(len(self.pca_data))
+        random.shuffle(index_list_pre)
 
+        for i in range(self.sample_size):
+            index_list.append(index_list_pre[i])
+
+        self.sample = self.pca_data[index_list]
         #------------------------------------------------------------------
         k = len(self.pca_components)
         sil = 0
