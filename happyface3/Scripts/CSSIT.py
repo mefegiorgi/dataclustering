@@ -11,7 +11,6 @@
 #------------------------------------------------------------
 
 import numpy as np
-from matplotlib import pyplot as plt
 import random
 from sklearn import cross_validation
 from sklearn.cluster import KMeans
@@ -22,32 +21,22 @@ import ConfigParser
 
 class StatusIdentification:
     config = ConfigParser.ConfigParser()
-    try:
-        config.read("config.cfg")
-    except IOError:
-        print "file config.cfg not available please check if it exists"
 
     filename = ''
     raw_data = []
     processed_data = []
     pca_components = []
     pca_data = []
+    pca_model = []
     sample = []
     K = 0
     cluster_centers = []
-    N_Points = int(config.get('normalisation', 'window_size'))
-    Std_Dev = float(config.get('normalisation', 'standard_deviation'))
-    cut_value = float(config.get('main', 'cut_value'))
-    sample_size = int(config.get('main', 'sample_size'))
-    conf_interval = float(config.get('main', 'confidence_interval'))
-    display_size = int(config.get('main', 'display_size'))
-
-
+    
 #--------------------------------------------------------------
 # FUNCTIONS
 #--------------------------------------------------------------
 
-    def __init__(self, arr):
+    def __init__(self, arr, confname):
         '''
         The object is initialised with an argument. This can be
             a) The name of the file in which the SRT-vectors are written
@@ -66,6 +55,16 @@ class StatusIdentification:
             ...]
 
         '''
+	try:
+          self.config.read(confname)
+	except IOError:
+          print "file config.cfg not available please check if it exists"
+	self.N_Points = int(self.config.get('normalisation', 'window_size'))
+	self.Std_Dev = float(self.config.get('normalisation', 'standard_deviation'))
+	self.cut_value = float(self.config.get('main', 'cut_value'))
+	self.sample_size = int(self.config.get('main', 'sample_size'))
+	self.conf_interval = float(self.config.get('main', 'confidence_interval'))
+	self.display_size = int(self.config.get('main', 'display_size'))
         if type(arr) is str:
             self.filename = arr
         elif type(arr) is numpy.ndarray:
@@ -90,20 +89,21 @@ class StatusIdentification:
         '''
         norm_g = []
         window = self.__generate_gaussian_window(self.N_Points, self.Std_Dev)
-        for i in range(1,len(self.raw_data[0,:])):
-            tmp = np.convolve(self.raw_data[:,i].astype(float), window)
+        for i in range(len(self.processed_data[0,:])):
+            tmp = np.convolve(self.processed_data[:,i].astype(float), window)
             norm_g.append(list(tmp))
         norm_g = np.array(norm_g)
         n_tmp = np.zeros((len(norm_g[0,:]), len(norm_g[:,0])))
         for i in range(len(norm_g[:,0])):
             n_tmp[:,i] = norm_g[i,:]
         n_tmp = n_tmp[14:-15,:]
-        n_tmp = n_tmp.astype(str)
+        self.processed_data = n_tmp
+        '''n_tmp = n_tmp.astype(str)
         n_tmp2 = []
         for i in range(len(n_tmp)):
             n_tmp2.append(np.insert(n_tmp[i,:], 0, str(self.raw_data[i,0])))
         n_tmp2 = np.array(n_tmp2)
-        self.processed_data = n_tmp2
+        self.processed_data = n_tmp2'''
 
     def __PrincipleComponentAnalysis(self):
         '''
@@ -112,10 +112,11 @@ class StatusIdentification:
         more than 95 percent are chosen to represent the data.
         '''
         pca = PCA(0.95)
-        pca.fit(self.processed_data[:,1:].astype(float))
+        pca.fit(self.processed_data[:,:].astype(float))
         pca_score = pca.explained_variance_ratio_
+        self.pca_model = pca
         self.pca_components = pca.components_
-        self.pca_data = np.array(pca.transform(self.processed_data[:,1:].astype(float)))
+        self.pca_data = np.array(pca.transform(self.processed_data[:,:].astype(float)))
 
     def __process_data(self):
         '''
@@ -128,25 +129,34 @@ class StatusIdentification:
         if self.filename != '':
             f_in = open(self.filename)
             for line in f_in:
-                line = (line.split('\r\n'))[0]
+                line = (line.split('\n'))[0]
                 columns = line.split(',')
+                while len(columns) < 125:
+                    columns.append('-1')
                 line_is_okay = True
                 i=2
                 while line_is_okay and i<len(columns):
                     if columns[i] == '-1' or columns[i] == 'none':
                         line_is_okay=False
                     i+=1
+                for j in range(2,len(columns)):
+                    if float(columns[j]) > self.cut_value:
+                        columns[j] = str(self.cut_value)
+                self.raw_data.append(columns[1:])
                 if line_is_okay:
-                    for j in range(2,len(columns)):
-                        if float(columns[j]) > self.cut_value:
-                            columns[j] = str(self.cut_value)
-                    self.raw_data.append(columns[1:])
+                    self.processed_data.append(columns[2:])
             f_in.close()
         else:
             for i in range(len(self.raw_data[:,0])):
-                for j in range(len(self.raw_data[0,:])):
+                lineisokay = True
+                for j in range(1,len(self.raw_data[0,:])):
+                    if self.raw_data[i,j] == '-1' or self.raw_data[i,j]==-1 or self.raw_data[i,j] == 'none':
+                        lineisokay = False
                     if self.raw_data[i,j] > self.cut_value:
                         self.raw_data[i,j] = self.cut_value
+                if lineisokay:
+                    self.processed_data.append(self.raw_data[i,1:])
+        self.processed_data = np.array(self.processed_data[:]).astype(float)
         self.raw_data = np.array(self.raw_data)
         self.__normalise()
         self.__PrincipleComponentAnalysis()
@@ -169,7 +179,6 @@ class StatusIdentification:
 
         for i in range(self.sample_size):
             index_list.append(index_list_pre[i])
-
         self.sample = self.pca_data[index_list]
         #------------------------------------------------------------------
         k = len(self.pca_components)
@@ -199,12 +208,23 @@ class StatusIdentification:
         for i in range(self.display_size):
             mini = 10e30
             label = 0
-            for j,c in enumerate(self.cluster_centers):
-                dist = c-self.pca_data[-i-1]
-                if dist.dot(dist) < mini:
-                    mini = dist.dot(dist)
-                    label = j
+            isokay = True
+            for col in self.raw_data[-i-1,:]:
+                if col == -1 or col == '-1' or col=='none':
+                    label = 'no response'
+                    isokay = False
+            if isokay:
+                for j,c in enumerate(self.cluster_centers):
+                    X = self.raw_data[-i-1,1:].astype(float)
+                    X =  self.pca_model.transform(X)
+                    dist = c-X
+                    if dist.dot(dist) < mini:
+                        mini = dist.dot(dist)
+                        label = j
             time_stamp = self.raw_data[-i-1, 0]
             n_cl = self.K
-            analysis.append([time_stamp, label, n_cl])
+            d_from_0 = -1
+            if isokay:
+                d_from_0 = np.sqrt(self.raw_data[-i-1,1:].astype(float).dot(self.raw_data[-i-1,1:].astype(float)))
+            analysis.append([time_stamp, label, n_cl, d_from_0])
         return analysis

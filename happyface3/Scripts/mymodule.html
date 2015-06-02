@@ -1,0 +1,77 @@
+## -*- coding: utf-8 -*-
+
+<%inherit file="/module_base.html" />
+
+<%def name="content()">
+
+<p></p>
+<script type="text/javascript">
+var time_stamp = new Array(0);
+var distance = new Array(0);
+var plot_array = [[]];
+var labels = new Array(0);
+plot_array.push(['', 'bar']);
+for(var i = 0; i<30; i++){
+plot_array.push([0,0]);
+};
+</script>
+<table class="TableData">
+	<tr>
+		<td> Time Stamp </td>
+		<td> Cluster Code </td>
+		<td> Total Number of Clusters </td>
+	</tr>
+		%for detail in details:
+			<tr>
+			<td> ${detail['Time Stamp']} </td>
+			<td> ${detail['Cluster Code']} </td>
+			<td> ${detail['Total Number of Clusters']} </td>
+			</tr>
+		%endfor
+</table>
+%for detail in details:
+<script type="text/javascript">
+var ddist = Number(${detail['Distance']});
+var ddate = 60*${detail['hour']}+${detail['minute']};
+time_stamp.push(ddate);
+distance.push(ddist);
+</script> 
+%endfor
+<script>
+for(var i = 1; i<31; ++i){
+	plot_array[i][0]=time_stamp[i];
+	plot_array[i][1]=distance[i];
+};
+document.write(plot_array[0]);
+</script>
+<p></p><p></p><p></p>
+<head>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load("visualization", "1", {packages:["corechart"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart() {
+       	var arr = [['', ''],[ plot_array[1][0],      plot_array[1][1]], [ plot_array[2][0],      plot_array[2][1]],[ plot_array[3][0],      plot_array[3][1]], [ plot_array[4][0],      plot_array[4][1]],[ plot_array[5][0],      plot_array[5][1]], [ plot_array[6][0],      plot_array[6][1]],[ plot_array[7][0],      plot_array[7][1]], [ plot_array[8][0],      plot_array[8][1]],[ plot_array[9][0],      plot_array[9][1]], [ plot_array[10][0],      plot_array[10][1]],[ plot_array[11][0],      plot_array[11][1]], [ plot_array[12][0],      plot_array[12][1]],[ plot_array[13][0],      plot_array[13][1]], [ plot_array[14][0],      plot_array[14][1]],[ plot_array[15][0],      plot_array[15][1]], [ plot_array[16][0],      plot_array[16][1]]];
+	var data = google.visualization.arrayToDataTable(arr);
+        var options = {
+          title: "Euklidian distance of the SRTs from origin for last 16 polls",
+          hAxis: {title: "Minutes since 00:00 [m]", minValue: plot_array[16][0], maxValue: plot_array[1][0]},
+          vAxis: {title: "Euklidian distance from origin [s]", minValue: 0, maxValue: 5},
+          legend: 'none'
+        };
+        var chart = new google.visualization.ScatterChart(document.getElementById('chart_div'));
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+  </body>
+A value of -1 corresponds to a poll where at least one service was unavailable.
+</%def>
+<!--
+	%for detail in details:
+		var ddate = new Date(${detail['year']}, ${detail['month']}, ${detail['day']}, ${detail['hour']}, ${detail['minute']}, ${detail['second']});
+		data.addRow([ddate, ${detail['Cluster Code']}]);	
+	%endfor
+-->
