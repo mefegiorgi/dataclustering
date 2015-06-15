@@ -42,7 +42,8 @@ class mymodule(hf.module.ModuleBase):
   Column('second',INT), 
   Column('Cluster Code',TEXT),
   Column('Total Number of Clusters', INT),
-  Column('Distance',FLOAT)
+  Column('Distance',FLOAT),
+  Column('Missing Services',TEXT)
   ], [])}
   
   
@@ -68,7 +69,7 @@ class mymodule(hf.module.ModuleBase):
       date = time_cut[0].split('-')
       time = time_cut[1].split(':')
       ttime = [int(date[0]), int(date[1]), int(date[2]), int(time[0]), int(time[1]), int(time[2])]
-      subdata.append({'Time Stamp':tmp[0], 'year':ttime[0], 'month':ttime[1],'day':ttime[2],'hour':ttime[3],'minute':ttime[4],'second':ttime[5], 'Cluster Code':tmp[1], 'Total Number of Clusters':int(tmp[2]), 'Distance':float(tmp[3])})
+      subdata.append({'Time Stamp':tmp[0], 'year':ttime[0], 'month':ttime[1],'day':ttime[2],'hour':ttime[3],'minute':ttime[4],'second':ttime[5], 'Cluster Code':tmp[1], 'Total Number of Clusters':int(tmp[2]), 'Distance':float(tmp[3]), 'Missing Services':tmp[4][:-1]})
     
     self.subtable_name_db_value_list = subdata
     '''

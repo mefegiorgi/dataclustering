@@ -23,6 +23,7 @@ class StatusIdentification:
     config = ConfigParser.ConfigParser()
 
     filename = ''
+    service_list = []
     raw_data = []
     processed_data = []
     pca_components = []
@@ -65,12 +66,12 @@ class StatusIdentification:
 	self.sample_size = int(self.config.get('main', 'sample_size'))
 	self.conf_interval = float(self.config.get('main', 'confidence_interval'))
 	self.display_size = int(self.config.get('main', 'display_size'))
+	self.service_list = (self.config.get('main','service_list')).split('/')[:-1]
+	
         if type(arr) is str:
             self.filename = arr
-        elif type(arr) is numpy.ndarray:
-            self.raw_data = arr
-        elif type(arr) is list:
-            self.raw_data = np.array(arr)
+        else:
+	    print 'Input Format error'
         self.__process_data()
 
     def __generate_gaussian_window(self, Number_of_Points, Standard_Deviation):
@@ -126,37 +127,33 @@ class StatusIdentification:
         This is done here a) while reading the data from a CSV file
         or b) while processing an already existing array.
         '''
-        if self.filename != '':
-            f_in = open(self.filename)
-            for line in f_in:
-                line = (line.split('\n'))[0]
-                columns = line.split(',')
-                while len(columns) < 125:
-                    columns.append('-1')
-                line_is_okay = True
-                i=2
-                while line_is_okay and i<len(columns):
-                    if columns[i] == '-1' or columns[i] == 'none':
-                        line_is_okay=False
-                    i+=1
-                for j in range(2,len(columns)):
-                    if float(columns[j]) > self.cut_value:
-                        columns[j] = str(self.cut_value)
-                self.raw_data.append(columns[1:])
-                if line_is_okay:
-                    self.processed_data.append(columns[2:])
-            f_in.close()
-        else:
-            for i in range(len(self.raw_data[:,0])):
-                lineisokay = True
-                for j in range(1,len(self.raw_data[0,:])):
-                    if self.raw_data[i,j] == '-1' or self.raw_data[i,j]==-1 or self.raw_data[i,j] == 'none':
-                        lineisokay = False
-                    if self.raw_data[i,j] > self.cut_value:
-                        self.raw_data[i,j] = self.cut_value
-                if lineisokay:
-                    self.processed_data.append(self.raw_data[i,1:])
-        self.processed_data = np.array(self.processed_data[:]).astype(float)
+        
+	f_in = open(self.filename)
+	processed_data=[]
+        for line in f_in:
+	    line_is_okay = True
+            line = (line.split('\n'))[0]
+            columns = line.split(',')
+	    missing_services = columns[-1]
+	    columns = columns[:-1]
+            while len(columns) < len(self.service_list):
+		columns.append('-1')
+                line_is_okay=False
+            i=2
+            while line_is_okay and i<len(columns):
+                if columns[i] == '-1' or columns[i] == 'none':
+                    line_is_okay=False
+                i+=1
+            for j in range(2,len(columns)):
+                if float(columns[j]) > self.cut_value:
+                    columns[j] = str(self.cut_value)
+	    raw_col = columns[1:]
+	    raw_col.append(missing_services)
+            self.raw_data.append(raw_col)
+            if line_is_okay:
+                processed_data.append(columns[2:])
+        f_in.close()
+        self.processed_data = np.array(processed_data,dtype='float')
         self.raw_data = np.array(self.raw_data)
         self.__normalise()
         self.__PrincipleComponentAnalysis()
@@ -177,7 +174,7 @@ class StatusIdentification:
         index_list_pre= range(len(self.pca_data))
         random.shuffle(index_list_pre)
 
-        for i in range(self.sample_size):
+        for i in range(min([self.sample_size,len(self.pca_data)])):
             index_list.append(index_list_pre[i])
         self.sample = self.pca_data[index_list]
         #------------------------------------------------------------------
@@ -205,26 +202,31 @@ class StatusIdentification:
             return arr.dot(arr)
         self.cluster_centers = sorted(kmeans.cluster_centers_, key=sort_key)
         analysis = []
-        for i in range(self.display_size):
+        for i in range(min([self.display_size, len(self.pca_data)])):
             mini = 10e30
             label = 0
             isokay = True
-            for col in self.raw_data[-i-1,:]:
+            for col in self.raw_data[-i-1,:-1]:
                 if col == -1 or col == '-1' or col=='none':
                     label = 'no response'
                     isokay = False
             if isokay:
                 for j,c in enumerate(self.cluster_centers):
-                    X = self.raw_data[-i-1,1:].astype(float)
+                    X = self.raw_data[-i-1,1:-1].astype(float)
                     X =  self.pca_model.transform(X)
                     dist = c-X
-                    if dist.dot(dist) < mini:
-                        mini = dist.dot(dist)
+                    if np.dot(dist,dist.T) < mini:
+                        mini = np.dot(dist,dist.T)
                         label = j
             time_stamp = self.raw_data[-i-1, 0]
             n_cl = self.K
             d_from_0 = -1
+	    missing_services = ''
             if isokay:
-                d_from_0 = np.sqrt(self.raw_data[-i-1,1:].astype(float).dot(self.raw_data[-i-1,1:].astype(float)))
-            analysis.append([time_stamp, label, n_cl, d_from_0])
+		X = self.raw_data[-i-1,1:-1].astype(float)
+                d_from_0 = np.sqrt(np.dot(X,X.T))
+            else :
+	        d_from_0=-1
+		missing_services = self.raw_data[-i-1,-1]
+	    analysis.append([time_stamp, label, n_cl, d_from_0, missing_services])
         return analysis
