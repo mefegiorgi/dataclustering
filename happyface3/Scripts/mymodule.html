@@ -12,7 +12,7 @@ var plot_array = [[]];
 var labels = new Array(0);
 plot_array.push(['', 'bar']);
 for(var i = 0; i<30; i++){
-plot_array.push([0,0,0]);
+plot_array.push([0,0]);
 };
 </script>
 <table class="TableData">
@@ -20,25 +20,19 @@ plot_array.push([0,0,0]);
 		<td> Time Stamp </td>
 		<td> Cluster Code </td>
 		<td> Total Number of Clusters </td>
-		<td> Missing Services (if missing) </td>
 	</tr>
 		%for detail in details:
 			<tr>
 			<td> ${detail['Time Stamp']} </td>
 			<td> ${detail['Cluster Code']} </td>
 			<td> ${detail['Total Number of Clusters']} </td>
-			<td> ${detail['Missing Services']} </td>
 			</tr>
 		%endfor
 </table>
 %for detail in details:
 <script type="text/javascript">
 var ddist = Number(${detail['Distance']});
-var ccode = Number(${detail['Cluster Code']});
-
-labels.push(ccode);
-//var ddate = 60*${detail['hour']}+${detail['minute']};
-var ddate = "Date(${detail['year']},${detail['month']},${detail['day']},${detail['hour']},${detail['minute']},${detail['second']})";
+var ddate = 60*${detail['hour']}+${detail['minute']};
 time_stamp.push(ddate);
 distance.push(ddist);
 </script> 
@@ -47,7 +41,6 @@ distance.push(ddist);
 for(var i = 1; i<31; ++i){
 	plot_array[i][0]=time_stamp[i];
 	plot_array[i][1]=distance[i];
-	plot_array[i][2]=labels[i];
 };
 document.write(plot_array[0]);
 </script>
@@ -58,44 +51,11 @@ document.write(plot_array[0]);
       google.load("visualization", "1", {packages:["corechart"]});
       google.setOnLoadCallback(drawChart);
       function drawChart() {
-	var colorcoding = ['green','yellow','red'];
-       	var arr = [[{type:'datetime', label:'Date'}, {type:'number',label:'Distance'}, {'type':'string','role':'style'}],
-[ plot_array[1][0],       plot_array[1][1],  	colorcoding[ plot_array[1][2]]],
-[ plot_array[2][0],       plot_array[2][1],  	colorcoding[ plot_array[2][2]]],
-[ plot_array[3][0],       plot_array[3][1],  	colorcoding[ plot_array[3][2]]],
-[ plot_array[4][0],       plot_array[4][1],  	colorcoding[ plot_array[4][2]]],
-[ plot_array[5][0],       plot_array[5][1],  	colorcoding[ plot_array[5][2]]],
-[ plot_array[6][0],       plot_array[6][1],  	colorcoding[ plot_array[6][2]]],
-[ plot_array[7][0],       plot_array[7][1],  	colorcoding[ plot_array[7][2]]], 
-[ plot_array[8][0],       plot_array[8][1],  	colorcoding[ plot_array[8][2]]],
-[ plot_array[9][0],       plot_array[9][1],  	colorcoding[ plot_array[9][2]]],
-[ plot_array[10][0],      plot_array[10][1], 	colorcoding[ plot_array[10][2]]],
-[ plot_array[11][0],      plot_array[11][1], 	colorcoding[ plot_array[11][2]]],
-[ plot_array[12][0],      plot_array[12][1], 	colorcoding[ plot_array[12][2]]],
-[ plot_array[13][0],      plot_array[13][1], 	colorcoding[ plot_array[13][2]]],
-[ plot_array[14][0],      plot_array[14][1], 	colorcoding[ plot_array[14][2]]],
-[ plot_array[15][0],      plot_array[15][1], 	colorcoding[ plot_array[15][2]]],
-[ plot_array[16][0],      plot_array[16][1], 	colorcoding[ plot_array[16][2]]],
-[ plot_array[17][0],      plot_array[17][1],  	colorcoding[ plot_array[17][2]]],
-[ plot_array[18][0],      plot_array[18][1],  	colorcoding[ plot_array[18][2]]],
-[ plot_array[19][0],      plot_array[19][1],  	colorcoding[ plot_array[19][2]]],
-[ plot_array[20][0],      plot_array[20][1],  	colorcoding[ plot_array[20][2]]],
-[ plot_array[21][0],      plot_array[21][1],  	colorcoding[ plot_array[21][2]]],
-[ plot_array[22][0],      plot_array[22][1],  	colorcoding[ plot_array[22][2]]],
-[ plot_array[23][0],      plot_array[23][1],  	colorcoding[ plot_array[23][2]]],
-[ plot_array[24][0],      plot_array[24][1],  	colorcoding[ plot_array[24][2]]],
-[ plot_array[25][0],      plot_array[25][1],  	colorcoding[ plot_array[25][2]]], 
-[ plot_array[26][0],      plot_array[26][1], 	colorcoding[ plot_array[26][2]]],
-[ plot_array[27][0],      plot_array[27][1], 	colorcoding[ plot_array[27][2]]],
-[ plot_array[28][0],      plot_array[28][1], 	colorcoding[ plot_array[28][2]]],
-[ plot_array[29][0],      plot_array[29][1], 	colorcoding[ plot_array[29][2]]],
-[ plot_array[30][0],      plot_array[30][1], 	colorcoding[ plot_array[30][2]]]
-];
+       	var arr = [['', ''],[ plot_array[1][0],      plot_array[1][1]], [ plot_array[2][0],      plot_array[2][1]],[ plot_array[3][0],      plot_array[3][1]], [ plot_array[4][0],      plot_array[4][1]],[ plot_array[5][0],      plot_array[5][1]], [ plot_array[6][0],      plot_array[6][1]],[ plot_array[7][0],      plot_array[7][1]], [ plot_array[8][0],      plot_array[8][1]],[ plot_array[9][0],      plot_array[9][1]], [ plot_array[10][0],      plot_array[10][1]],[ plot_array[11][0],      plot_array[11][1]], [ plot_array[12][0],      plot_array[12][1]],[ plot_array[13][0],      plot_array[13][1]], [ plot_array[14][0],      plot_array[14][1]],[ plot_array[15][0],      plot_array[15][1]], [ plot_array[16][0],      plot_array[16][1]]];
 	var data = google.visualization.arrayToDataTable(arr);
-
         var options = {
           title: "Euklidian distance of the SRTs from origin for last 16 polls",
-          hAxis: {title: "Time" },
+          hAxis: {title: "Minutes since 00:00 [m]", minValue: plot_array[16][0], maxValue: plot_array[1][0]},
           vAxis: {title: "Euklidian distance from origin [s]", minValue: 0, maxValue: 5},
           legend: 'none'
         };
@@ -109,4 +69,9 @@ document.write(plot_array[0]);
   </body>
 A value of -1 corresponds to a poll where at least one service was unavailable.
 </%def>
-
+<!--
+	%for detail in details:
+		var ddate = new Date(${detail['year']}, ${detail['month']}, ${detail['day']}, ${detail['hour']}, ${detail['minute']}, ${detail['second']});
+		data.addRow([ddate, ${detail['Cluster Code']}]);	
+	%endfor
+-->
